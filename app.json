@@ -1,0 +1,12 @@
+{
+  "name": "digiBlue",
+  "displayName": "digiBlue",
+  "expo": {
+    "name": "digiBlue",
+    "slug": "digiBlue",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
