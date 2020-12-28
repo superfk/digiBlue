@@ -11,6 +11,7 @@
     "release-build": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/ && rd /s /q \"C:\\digiBlue\\\\android\\app\\src\\main\\res\\drawable-mdpi\" && rd /s /q \"C:\\digiBlue\\\\android\\app\\src\\main\\res\\raw\" && cd android && gradlew assembleRelease && cd .. && npm run release-run-android"
   },
   "dependencies": {
+    "@react-native-community/picker": "^1.8.0",
     "expo": "~40.0.0",
     "expo-font": "~8.4.0",
     "expo-splash-screen": "~0.8.0",
