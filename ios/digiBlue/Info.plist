@@ -25,7 +25,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
+<<<<<<< HEAD
 	<string>This $(PRODUCT_NAME) app will use bluetooth in order to communicate with bareiss device</string>
+=======
+	<string>This $(PRODUCT_NAME) app will use bluetooth to communicate Bareiss device</string>
+>>>>>>> 8b942776f38e191cd842b50eff22d65c50edc251
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -40,7 +44,11 @@
 		</dict>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
+<<<<<<< HEAD
 	<string>This $(PRODUCT_NAME) app will use location info due to bluetooth communication</string>
+=======
+	<string>This $(PRODUCT_NAME) app will access location info in order to use bluetooth for communicating Bareiss device</string>
+>>>>>>> 8b942776f38e191cd842b50eff22d65c50edc251
 	<key>UILaunchStoryboardName</key>
 	<string>SplashScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
