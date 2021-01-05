@@ -2,7 +2,7 @@
   "main": "index.js",
   "scripts": {
     "debug-run-android": "react-native run-android --variant=debug",
-    "ios": "react-native run-ios",
+    "ios": "react-native run-ios --device \"JEH iPhone 11\"",
     "release-run-android": "react-native run-android --variant=release",
     "web": "expo start --web",
     "start": "react-native start",
@@ -11,7 +11,11 @@
     "release-build": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/ && rd /s /q \"C:\\digiBlue\\\\android\\app\\src\\main\\res\\drawable-mdpi\" && rd /s /q \"C:\\digiBlue\\\\android\\app\\src\\main\\res\\raw\" && cd android && gradlew assembleRelease && cd .. && npm run release-run-android"
   },
   "dependencies": {
+    "@react-native-community/masked-view": "^0.1.10",
     "@react-native-community/picker": "^1.8.0",
+    "@react-navigation/drawer": "^5.11.4",
+    "@react-navigation/native": "^5.8.10",
+    "@react-navigation/stack": "^5.12.8",
     "expo": "~40.0.0",
     "expo-font": "~8.4.0",
     "expo-splash-screen": "~0.8.0",
@@ -21,12 +25,17 @@
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-native": "~0.63.4",
+    "react-native-animated-splash-screen": "^2.0.5",
     "react-native-base64": "^0.2.1",
     "react-native-ble-plx": "^2.0.2",
-    "react-native-gesture-handler": "~1.8.0",
-    "react-native-reanimated": "~1.13.0",
-    "react-native-screens": "~2.15.0",
+    "react-native-chart-kit": "^6.9.0",
+    "react-native-gesture-handler": "^1.8.0",
+    "react-native-reanimated": "^1.13.2",
+    "react-native-safe-area-context": "^3.1.9",
+    "react-native-screens": "^2.15.0",
+    "react-native-svg": "^12.1.0",
     "react-native-unimodules": "~0.12.0",
+    "react-native-vector-icons": "^7.1.0",
     "react-native-web": "~0.13.12"
   },
   "devDependencies": {

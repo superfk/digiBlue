@@ -2,6 +2,8 @@ require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/react-native-unimodules/cocoapods.rb'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
+
+
 platform :ios, '10.0'
 
 target 'digiBlue' do
@@ -22,5 +24,5 @@ target 'digiBlue' do
   #    flipper_post_install(installer)
   #  end
   pod 'react-native-ble-plx', :path => '../node_modules/react-native-ble-plx'
-
+  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 end

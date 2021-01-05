@@ -1,29 +1,33 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Platform, PermissionsAndroid, Image, ActionSheetIOS, ScrollView } from 'react-native';
-import { Container, Header, Body, Footer, FooterTab, Button, Icon, Badge, Input, Item } from 'native-base';
+import 'react-native-gesture-handler';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Platform, PermissionsAndroid } from 'react-native';
 import { BleManager } from 'react-native-ble-plx';
 import base64 from 'react-native-base64';
-import { Picker } from '@react-native-community/picker';
+import SideBar from './components/SideBar/SideBar';
+import AnimatedSplash from "react-native-animated-splash-screen";
+
+import { createDrawerNavigator, DrawerActions } from '@react-navigation/drawer';
+import { NavigationContainer } from '@react-navigation/native';
+
+import HomeScreen from './screens/HomeScreen';
+import SetupScreen from './screens/SetupScreen';
+
+import SysContext from './context/sys-context';
 
 const manager = new BleManager();
 
-const options = [
-  { idx: 0, value: "GET(DEV_NAME),DB21", label: "GET(DEV_NAME),DB21" },
-  { idx: 1, value: "GET(DEV_SV),563B", label: "GET(DEV_SV),563B" },
-  { idx: 2, value: "GET(MS_DURATION),EC15", label: "GET(MS_DURATION),EC15" },
-  { idx: 3, value: "GET(MS_METHOD),2C41", label: "GET(MS_METHOD),2C41" },
-  { idx: 4, value: "GET(SYSTEM),E9D5", label: "GET(SYSTEM),E9D5" },
-  { idx: 5, value: "SET(MS_DURATION=5),3A3D", label: "SET(MS_DURATION=5),3A3D" },
-]
+const Drawer = createDrawerNavigator();
 
-export default function App() {
+export default function App(props) {
+
   const [bleDevice, setBleDevice] = useState(null);
   const [deviceName, setDeviceName] = useState('');
   const [connected, setConnected] = useState(false);
   const [toggleDisconnect, setToggleDisconnect] = useState(false);
   const [data, setData] = useState(null);
   const [startMonitor, setStartMonitor] = useState(false);
-  const [command, setCommand] = useState(options[0]);
+  const [histData, setHistData] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     if (Platform.OS === 'android' && Platform.Version >= 23) {
@@ -69,6 +73,16 @@ export default function App() {
             console.log('error occurred in read function,', error)
           } else {
             const resp = base64.decode(characteristic.value).trim();
+            try {
+              console.log(`resp: ${resp}`)
+              const floatData = parseFloat(resp);
+              console.log(`float data: ${floatData}`)
+              const curHistory = [...histData];
+              curHistory.push(floatData);
+              setHistData(curHistory);
+            } catch (err) {
+              console.log(err)
+            }
             setData(resp);
           }
         }
@@ -77,7 +91,7 @@ export default function App() {
       setStartMonitor(false);
     }
 
-  }, [bleDevice, startMonitor])
+  }, [bleDevice, startMonitor, histData])
 
   const startScan = (e) => {
     console.log('start to connect device')
@@ -121,54 +135,15 @@ export default function App() {
     setToggleDisconnect(true);
   }
 
-  const onPress = () =>
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: options.map(elm => {
-          return elm.label;
-        })
-      },
-      buttonIndex => {
-        const selectedCommand = options.find(elm => elm.idx === buttonIndex);
-        if (selectedCommand !== undefined) {
-          handleCommandChange(selectedCommand);
-        }
-      }
-    );
-
-  const pickerSwitch = () => {
-    if (Platform.OS === 'ios') {
-      return <Button transparent small onPress={onPress}>
-        <Text style={{ fontSize: 16 }}>{command.label}</Text>
-      </Button>
-    } else {
-      return <Picker
-        prompt={"select command"}
-        selectedValue={command.value}
-        style={{ height: 50, width: '80%' }}
-        onValueChange={async (value, index) => {
-          const selectedCommand = options.find(elm => elm.idx === index);
-          handleCommandChange(selectedCommand);
-        }}>
-        {options.map(elm => <Picker.Item key={elm.value} label={elm.label} value={elm.value} />)}
-      </Picker>
-    }
-  }
-
-  const handleCommandChange = (selectedCommand) => {
-    console.log(selectedCommand);
-    setCommand(selectedCommand);
-  }
-
-  const handleCommandSend = async () => {
-    console.log('send command:', command)
+  const handleCommandSend = async (cmd) => {
+    console.log('send command:', cmd)
     console.log('send id device id:', bleDevice.id)
     try {
       await manager.writeCharacteristicWithoutResponseForDevice(
         bleDevice.id,
         "49535343-FE7D-4AE5-8FA9-9FAFD205E455",
         "49535343-1E4D-4BD9-BA61-23C647249616",
-        base64.encode(command.value));
+        base64.encode(cmd.value));
 
     } catch (error) {
 
@@ -197,85 +172,56 @@ export default function App() {
 
   }, [toggleDisconnect, bleDevice])
 
-  return (
-    <Container>
+  const toggleDrawer = () => {
+    console.log(props)
+    props.navigation.dispatch(DrawerActions.toggleDrawer());
+  };
 
-      <Header transparent>
-        <Body style={{ flex: 1 }}>
-          <Image style={styles.tinyLogo} source={require('./assets/Bareiss_LOGO.png')} />
-          <Text>digiBlue App Demo</Text>
-        </Body>
-      </Header>
-      <ScrollView>
-        <View style={styles.container}>
-          <Button block primary onPress={startScan} style={styles.button}>
-            <Text style={{ color: 'white' }}>Scan</Text>
-          </Button>
-          <Button block warning onPress={disconnect}>
-            <Text style={{ color: 'white' }}>Disconnect</Text>
-          </Button>
-        </View>
-        <View style={styles.infoContainer}>
-          <Text adjustsFontSizeToFit={true} numberOfLines={1}>Device name: {bleDevice ? bleDevice.name : '--'}</Text>
-          <Text adjustsFontSizeToFit={true} numberOfLines={1}>Device address: {bleDevice ? bleDevice.id : '--'}</Text>
-          <View>
-            {pickerSwitch()}
-          </View>
-          <Button block primary onPress={handleCommandSend}>
-            <Text style={{ color: 'white' }}>Send</Text>
-          </Button>
-          <View style={styles.respContainer}>
-            <Text style={styles.valueText} adjustsFontSizeToFit={true} numberOfLines={1}>{bleDevice ? data : '--'}</Text>
-          </View>
-        </View>
-      </ScrollView>
-    </Container>
+  const setSystemLoaded = () => {
+    setIsLoaded(true)
+  };
+
+  return (
+    <SysContext.Provider value={{
+      bleDevice: bleDevice,
+      data: data,
+      historyData: histData,
+      startScan: startScan,
+      disconnect: disconnect,
+      handleCommandSend: handleCommandSend,
+      toggleDrawer: toggleDrawer,
+      setSystemLoaded: setSystemLoaded,
+
+    }}>
+      <AnimatedSplash
+        translucent={true}
+        isLoaded={isLoaded}
+        logoImage={require("./assets/logo.png")}
+        backgroundColor={"#262626"}
+        logoHeight={150}
+        logoWidth={150}
+      >
+        <NavigationContainer>
+          <Drawer.Navigator initialRouteName="Home" drawerContent={props => <SideBar {...props} />}>
+            <Drawer.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{
+                title: 'Home',
+                headerStyle: {
+                  backgroundColor: '#f4511e',
+                },
+                headerTintColor: '#fff',
+                headerTitleStyle: {
+                  fontWeight: 'bold',
+                },
+
+              }} />
+            <Drawer.Screen name="Setup" component={SetupScreen} options={{ title: 'Setup' }} />
+          </Drawer.Navigator>
+        </NavigationContainer>
+      </AnimatedSplash>
+    </SysContext.Provider>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 50,
-  },
-  tinyLogo: {
-    maxWidth: 180,
-    maxHeight: 20
-  },
-  infoContainer: {
-    flex: 1,
-    marginVertical: 20,
-    marginHorizontal: 30,
-    height: 250,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.20,
-    shadowRadius: 1.41,
-
-    elevation: 2,
-    padding: 20
-
-  },
-  button: {
-    marginBottom: 10
-  },
-  respContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 100,
-    borderWidth: 1,
-    marginTop: 5,
-    borderColor: '#ccc',
-  },
-  valueText: {
-    color: '#0075be',
-    fontWeight: 'bold',
-  }
-});
