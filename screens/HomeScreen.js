@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   Alert,
   ScrollView,
   FlatList,
+  Easing,
+  SafeAreaView,
 } from "react-native";
 
 import {
@@ -18,7 +20,16 @@ import {
   Footer,
   FooterTab,
   Icon,
+  List,
+  ListItem,
+  Left,
+  Right,
 } from "native-base";
+
+import SquareButton from "../components/SquareButton";
+
+import { AnimatedCircularProgress } from "react-native-circular-progress";
+import Carousel from "react-native-snap-carousel";
 
 import SystemContext from "../context/sys-context";
 import { useState } from "react";
@@ -31,23 +42,47 @@ const Item = ({ title }) => (
 
 function HomeScreen({ navigation }) {
   const context = useContext(SystemContext);
+  const circleRef = useRef(null);
+  const scrollRef = useRef(null);
+  const carouselRef = useRef(null);
+
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const [buttonsData, setButtonsData] = useState([
+    {
+      label: "Start a Test",
+      name: "Start a Test",
+    },
+    {
+      label: "Instrument Finder",
+      name: "Instrument Finder",
+    },
+    {
+      label: "Schedule Service",
+      name: "Schedule Service",
+    },
+    {
+      label: "Activity logs",
+      name: "Activity logs",
+    },
+  ]);
 
   const [data, setData] = useState([
     {
-      title: "Main dishes",
-      data: ["Pizza", "Burger", "Risotto"],
+      title: "Model",
+      value: "HPE III Shore A",
     },
     {
-      title: "Sides",
-      data: ["French Fries", "Onion Rings", "Fried Shrimps"],
+      title: "S/N",
+      value: "807724",
     },
     {
-      title: "Drinks",
-      data: ["Water", "Coke", "Beer"],
+      title: "No. of Measurements",
+      value: "173",
     },
     {
-      title: "Desserts",
-      data: ["Cheese Cake", "Ice Cream"],
+      title: "Last Calibration",
+      value: "07.21.2020",
     },
   ]);
 
@@ -55,128 +90,185 @@ function HomeScreen({ navigation }) {
     context.setSystemLoaded();
   }, []);
 
-  const renderItem = ({ item }) => <Item title={item.title} />;
+  const onCheckStatus = useCallback(() => {
+    const rdn = parseInt(Math.random() * 100);
+    circleRef.current.animate(rdn, 1000, Easing.quad);
+  }, [circleRef]);
+
+  const onStartTest = useCallback((e) => {
+    console.log("start a test");
+  }, []);
+
+  const moveBody = (index) => {
+    scrollRef.current.scrollTo({
+      x: index * width,
+      animation: false,
+    });
+  };
+
+  const infoItems = data.map((item) => {
+    return (
+      <ListItem key={item.title}>
+        <Left>
+          <Text>{item.title}</Text>
+        </Left>
+        <Right>
+          <Text>{item.value}</Text>
+        </Right>
+      </ListItem>
+    );
+  });
+
+  const _renderItem = ({ item, index }) => {
+    return <SquareButton text={item.label} clicked={onStartTest} />;
+  };
 
   return (
-    <Container>
-      {/* <Header style={styles.head}>
-        <Left>
-          <Button transparent onPress={() => navigation.toggleDrawer()}>
-            <Icon name="menu" />
-          </Button>
-        </Left>
-        <Body>
-          <Image
-            style={styles.logo}
-            source={require("../assets/Bareiss_LOGO.png")}
-          />
-          <Subtitle>digiBlue</Subtitle>
-        </Body>
-        <Right>
-          <Button transparent>
-            <Icon name="ios-alert-circle" />
-          </Button>
-        </Right>
-      </Header> */}
-      <View style={styles.body}>
-        <View style={styles.upperContainer}>
-          <View style={styles.mainProdInfoRow}>
-            <Text style={styles.deviceModelText}>HPE III</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#6196FF" }}>
+      <Container>
+        <View style={styles.body}>
+          <View style={styles.upperContainer}>
+            <View style={styles.mainProdInfoRow}>
+              <Text style={styles.deviceModelText}>HPE III</Text>
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: "row",
+                  justifyContent: "flex-end",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={styles.otherModelText}>
+                  Other Bareiss Instruments
+                </Text>
+                <Icon
+                  name="caret-right"
+                  type="FontAwesome"
+                  style={{
+                    color: "white",
+                    fontSize: 20,
+                    marginLeft: 5,
+                  }}
+                />
+              </View>
+            </View>
+            <View style={styles.mainProdImageRow}>
+              <View>
+                <TouchableOpacity
+                  style={styles.outlineBtn}
+                  onPress={onCheckStatus}
+                >
+                  <Text style={{ color: "white", fontSize: 12 }}>
+                    Check Status
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.deviceContainer}>
+                <View style={styles.deviceBlueCircle}>
+                  {/* <Image
+                  source={require("../assets/blueCircle.png")}
+                  style={{
+                    resizeMode: "contain",
+                    maxHeight: "100%",
+                    maxWidth: "100%",
+                  }}
+                /> */}
+                  <AnimatedCircularProgress
+                    ref={circleRef}
+                    style={styles.circleBar}
+                    size={Dimensions.get("window").width / 2 - 25}
+                    width={12}
+                    fill={0}
+                    lineCap="round"
+                    tintColor="#FFF684"
+                    onAnimationComplete={() =>
+                      console.log("onAnimationComplete")
+                    }
+                    backgroundColor="#CADFF2"
+                    rotation={220}
+                    arcSweepAngle={280}
+                  />
+                  <View style={styles.deviceAnchor}>
+                    <Image
+                      source={require("../assets/prodHPE3.png")}
+                      style={{
+                        resizeMode: "contain",
+                        maxHeight: "100%",
+                        maxWidth: "100%",
+                      }}
+                    />
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+          <View style={styles.lowerContainer}>
             <View
               style={{
                 flex: 1,
                 flexDirection: "row",
-                justifyContent: "flex-end",
-                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              <Text style={styles.otherModelText}>
-                Other Bareiss Instruments
-              </Text>
-              <Icon
-                name="caret-right"
-                type="FontAwesome"
-                style={{
-                  color: "white",
-                  fontSize: 20,
-                  marginLeft: 5,
+              <Carousel
+                ref={carouselRef}
+                layout={"default"}
+                data={buttonsData}
+                renderItem={_renderItem}
+                sliderWidth={Dimensions.get("window").width}
+                itemWidth={Dimensions.get("window").width / 3}
+                inactiveSlideScale={0.7}
+                inactiveSlideOpacity={0.8}
+                containerCustomStyle={styles.buttonRow}
+                loop={true}
+                loopClonesPerSide={2}
+                onSnapToItem={(index) => {
+                  console.log(index);
                 }}
               />
             </View>
-          </View>
-          <View style={styles.mainProdImageRow}>
-            <TouchableOpacity style={styles.outlineBtn} onPress={() => {}}>
-              <Text style={{ color: "white", fontSize: 12 }}>
-                {" "}
-                Check Status
-              </Text>
-            </TouchableOpacity>
-            <View style={styles.deviceContainer}>
-              <View style={styles.deviceBlueCircle}>
-                <Image
-                  source={require("../assets/blueCircle.png")}
+            <ScrollView style={styles.info}>
+              <View style={styles.infoHead}>
+                <Text
                   style={{
-                    resizeMode: "contain",
+                    fontSize: 16,
+                    fontWeight: "bold",
                   }}
-                />
+                >
+                  INFO
+                </Text>
               </View>
-              <View style={styles.deviceAnchor}>
-                <Image
-                  source={require("../assets/prodHPE3.png")}
-                  style={{
-                    resizeMode: "contain",
-                  }}
-                />
+              <View >
+                <List>{infoItems}</List>
               </View>
-            </View>
-          </View>
-        </View>
-        <View style={styles.lowerContainer}>
-          <View style={styles.info}>
-            <View style={styles.infoHead}>
-              <Text
-                style={{
-                  fontSize: 24,
-                  fontWeight: "bold"
-                }}
-              >
-                INFO
-              </Text>
-            </View>
-            <ScrollView>
-              <FlatList
-                data={data}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.id}
-              />
             </ScrollView>
           </View>
         </View>
-      </View>
 
-      <Footer style={styles.foot}>
-        <FooterTab style={styles.footTab}>
-          <NativeButton style={styles.btn}>
-            <Image
-              style={styles.footIcon}
-              source={require("../assets/iconHPE.png")}
-            />
-          </NativeButton>
-          <NativeButton>
-            <Image
-              style={styles.footIcon}
-              source={require("../assets/iconLocation.png")}
-            />
-          </NativeButton>
-          <NativeButton>
-            <Image
-              style={styles.footIcon}
-              source={require("../assets/iconUser.png")}
-            />
-          </NativeButton>
-        </FooterTab>
-      </Footer>
-    </Container>
+        <Footer style={styles.foot}>
+          <FooterTab style={styles.footTab}>
+            <NativeButton style={styles.btn}>
+              <Image
+                style={styles.footIcon}
+                source={require("../assets/iconHPE.png")}
+              />
+            </NativeButton>
+            <NativeButton>
+              <Image
+                style={styles.footIcon}
+                source={require("../assets/iconLocation.png")}
+              />
+            </NativeButton>
+            <NativeButton>
+              <Image
+                style={styles.footIcon}
+                source={require("../assets/iconUser.png")}
+              />
+            </NativeButton>
+          </FooterTab>
+        </Footer>
+      </Container>
+    </SafeAreaView>
   );
 }
 
@@ -234,8 +326,12 @@ const styles = StyleSheet.create({
   },
   mainProdImageRow: {
     width: "100%",
-    height: "60%",
+    maxHeight: "35%",
     position: "relative",
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   outlineBtn: {
     alignItems: "center",
@@ -246,42 +342,52 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: "white",
-    position: "absolute",
-    top: 0,
-    left: 40,
+    marginHorizontal: 20,
   },
   deviceContainer: {
+    maxHeight: Dimensions.get("window").width / 2,
+    width: Dimensions.get("window").width / 2,
     height: "100%",
     position: "relative",
-    top: 0,
-    right: 30,
-    bottom: 0,
   },
   deviceBlueCircle: {
+    height: Dimensions.get("window").width / 2,
+    width: Dimensions.get("window").width / 2,
+    position: "absolute",
+    top: 0,
+    right: 0,
+    zIndex: 2,
+    // borderWidth: 1,
+    // borderColor: 'orange',
+  },
+  circleBar: {
+    height: Dimensions.get("window").width / 2 - 20,
+    width: Dimensions.get("window").width / 2 - 20,
     position: "absolute",
     top: 10,
-    right: -20,
-    bottom: 0,
+    left: 10,
     zIndex: 2,
   },
   deviceAnchor: {
+    height: "100%",
+    width: "100%",
     position: "absolute",
-    top: 65,
-    right: -55,
+    top: "30%",
+    right: "-10%",
     bottom: 0,
     zIndex: 3,
   },
   lowerContainer: {
     backgroundColor: "#FFFFFF",
     position: "absolute",
-    top: 370,
+    top: "46%",
     left: 0,
     bottom: 0,
     width: "100%",
-    zIndex: 0,
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
     flex: 1,
+    flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -308,16 +414,22 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
   },
   info: {
-    paddingTop: 50,
-    paddingHorizontal: 50,
+    paddingTop: 20,
+    paddingHorizontal: 30,
     width: "100%",
+    flex: 1,
+    overflow: 'scroll',
   },
   item: {
-    padding: 10,
-    marginVertical: 8,
+    padding: 2,
+    marginVertical: 6,
     borderBottomWidth: 1,
   },
   title: {
-    fontSize: 16,
+    fontSize: 12,
+  },
+  buttonRow: {
+    marginTop: 80,
+    width: "100%",
   },
 });
